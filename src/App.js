@@ -1,20 +1,32 @@
-
-
-import React from 'react';
-import NavBar from './components/NavBar';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import LoginPage from './components/LoginPage';
 import ProfileForm from './components/ProfileForm';
+import NavBar from './components/NavBar';
+import { useState } from 'react';
 
 function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('token'));
+
   const handleLogout = () => {
-    // e.g. clear auth, redirect to login
-    alert('Logged out!');
+    localStorage.removeItem('token');
+    setIsAuthenticated(false);
+    window.location.href = '/login';
   };
 
   return (
-    <>
-      <NavBar onLogout={handleLogout} />
-      <ProfileForm />
-    </>
+    <BrowserRouter>
+      {isAuthenticated && <NavBar onLogout={handleLogout} />}
+      <Routes>
+        <Route path="/login" element={
+          isAuthenticated ? <Navigate to="/profile" /> : <LoginPage onLogin={() => setIsAuthenticated(true)} />
+        } />
+
+        <Route path="/profile" element={
+          isAuthenticated ? <ProfileForm onSubmitSuccess={() => alert("Submitted Successfully!")} /> : <Navigate to="/login" />
+        } />
+        <Route path="*" element={<Navigate to="/login" />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
 
